@@ -1,0 +1,41 @@
+services:
+  chrome:
+    ports:
+      - "4445:4444"
+    image: selenium/standalone-chrome:latest
+    hostname: chrome
+    networks:
+      - web
+    privileged: true
+    shm_size: 2g
+  db-drf-app:
+    networks:
+      - web
+    ports:
+      - '5432:5432'
+    image: postgres
+    volumes:
+      - postgres_data_app:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_PASSWORD: 'password'
+
+  web-drf-app:
+    mem_limit: '1012m'
+    mem_reservation: '512M'
+    container_name: "backend_drf"
+    build: .
+    command: python manage.py runserver 0.0.0.0:8100
+    volumes:
+      - .:/code
+    ports:
+      - "8100:8100"
+    networks:
+      - web
+    depends_on:
+      - db-drf-app
+
+volumes:
+  postgres_data_app:
+
+networks:
+  web:
